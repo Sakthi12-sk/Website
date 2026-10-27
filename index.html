@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Local Tree Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EEF1E6; --ink:#1F3423; --bark:#5B4632; --moss:#6E8B6A;
+  --gold:#B8912E; --line:#C9CDBB; --card:#F7F8F1;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --paper:#161C15; --ink:#E7ECE1; --bark:#C9B48E; --moss:#8FAE87; --gold:#D9B24C; --line:#33402F; --card:#1E2519; }
+}
+:root[data-theme="dark"]{ --paper:#161C15; --ink:#E7ECE1; --bark:#C9B48E; --moss:#8FAE87; --gold:#D9B24C; --line:#33402F; --card:#1E2519; }
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Work Sans',sans-serif;line-height:1.5;}
+h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
+.wrap{max-width:1000px;margin:0 auto;padding:32px 20px 80px;}
+header.hero{border-bottom:1px solid var(--line);padding-bottom:28px;margin-bottom:28px;}
+.eyebrow{font-size:13px;color:var(--moss);margin-bottom:6px;}
+h1{font-size:clamp(28px,5vw,44px);letter-spacing:-0.01em;}
+.sub{max-width:60ch;color:var(--bark);margin-top:10px;font-size:15px;}
+.stats{display:flex;gap:28px;margin-top:20px;flex-wrap:wrap;}
+.stat b{font-family:'Fraunces',serif;font-size:26px;display:block;}
+.stat span{font-size:12px;color:var(--bark);}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;align-items:center;}
+input[type=text],select{font-family:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:3px;background:var(--card);color:var(--ink);}
+input[type=text]{flex:1;min-width:180px;}
+button{font-family:inherit;font-size:14px;cursor:pointer;border-radius:3px;}
+.btn-primary{background:var(--ink);color:var(--paper);border:1px solid var(--ink);padding:9px 16px;}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line);padding:9px 14px;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:16px;cursor:pointer;transition:border-color .15s;}
+.card:hover{border-color:var(--moss);}
+.tag{width:34px;height:34px;border-radius:50%;background:var(--moss);color:var(--paper);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:14px;margin-bottom:10px;}
+.card h3{font-size:17px;}
+.sci{font-style:italic;color:var(--bark);font-size:13px;margin-top:2px;}
+.meta{font-size:12px;color:var(--moss);margin-top:10px;}
+.empty{border:1px dashed var(--line);border-radius:4px;padding:40px 20px;text-align:center;color:var(--bark);}
+.detail{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:26px;}
+.detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px;}
+dl{display:grid;grid-template-columns:120px 1fr;gap:8px 14px;margin-top:16px;font-size:14px;}
+dt{color:var(--moss);}
+dd{margin:0;}
+.notes{margin-top:16px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;color:var(--bark);}
+.modal-bg{position:fixed;inset:0;background:rgba(20,25,18,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:10;}
+.modal{background:var(--card);border-radius:5px;padding:24px;max-width:440px;width:100%;max-height:86vh;overflow-y:auto;}
+.modal label{display:block;font-size:13px;color:var(--moss);margin:12px 0 4px;}
+.modal input,.modal textarea{width:100%;font-family:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:3px;background:var(--paper);color:var(--ink);font-size:14px;}
+.modal textarea{resize:vertical;min-height:60px;}
+.modal-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;}
+.hidden{display:none;}
+footer{margin-top:40px;font-size:12px;color:var(--bark);text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Community Engagement Project — B.Sc. Computer Science, Sem V</div>
+    <h1>Local Tree Register</h1>
+    <p class="sub">A digital record of trees identified in the field: species, location and condition, gathered visit by visit and kept in one place for the community to browse.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div id="listView">
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search by name, species or location…">
+      <select id="filterFamily"></select>
+      <button class="btn-primary" id="addBtn">Document a tree</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div id="detailView" class="hidden"></div>
+
+  <footer>Tentative dataset shown below for illustration — replace with field-visit records as they're collected. New entries save to your Google Sheet once SHEET_URL is filled in.</footer>
+</div>
+
+<div class="modal-bg hidden" id="modalBg">
+  <div class="modal">
+    <h3>Document a tree</h3>
+    <label>Common name</label><input type="text" id="f-name">
+    <label>Scientific name</label><input type="text" id="f-sci">
+    <label>Family</label><input type="text" id="f-family">
+    <label>Location</label><input type="text" id="f-loc">
+    <label>Observations</label><textarea id="f-notes"></textarea>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn-primary" id="saveBtn">Save entry</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SEED = [
+ {name:"Neem", sci:"Azadirachta indica", family:"Meliaceae", loc:"Near community garden entrance", notes:"Mature tree, ~9m, used locally for its medicinal leaves.", date:"2026-09-12"},
+ {name:"Peepal", sci:"Ficus religiosa", family:"Moraceae", loc:"Opposite the housing society office", notes:"Heart-shaped leaves, a small platform built around the base.", date:"2026-09-12"},
+ {name:"Banyan", sci:"Ficus benghalensis", family:"Moraceae", loc:"Society playground corner", notes:"Aerial roots visible, provides shade over the seating area.", date:"2026-09-13"},
+ {name:"Gulmohar", sci:"Delonix regia", family:"Fabaceae", loc:"Along the main internal road", notes:"Bright orange-red flowers, seasonal bloom noted in May.", date:"2026-09-13"},
+ {name:"Ashoka", sci:"Polyalthia longifolia", family:"Annonaceae", loc:"Boundary wall, north side", notes:"Planted in a row, used as a privacy screen.", date:"2026-09-14"},
+ {name:"Mango", sci:"Mangifera indica", family:"Anacardiaceae", loc:"Backyard of block C", notes:"Fruiting tree, roughly 15 years old per a resident's estimate.", date:"2026-09-14"},
+ {name:"Jamun", sci:"Syzygium cumini", family:"Myrtaceae", loc:"Near the water tank", notes:"Tall, dense canopy; fruit drop noted on the path below.", date:"2026-09-15"},
+ {name:"Copper Pod", sci:"Peltophorum pterocarpum", family:"Fabaceae", loc:"Society main gate", notes:"Yellow flower clusters, moderate height.", date:"2026-09-15"}
+];
+
+// --- Paste the Web app URL you get after deploying the Apps Script (see instructions) ---
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwa0xIBm9uEsm7lFYPVneR6QZ9g7WdTh-wetimT8d4QhnTG_na-Yt1t3h7iONKzTINlIw/exec";
+
+let userEntries = [];
+let trees = SEED.slice();
+
+function loadEntries(){
+  fetch(SHEET_URL)
+    .then(r=>r.json())
+    .then(rows=>{
+      userEntries = rows
+        .filter(r=>r.name)
+        .map(r=>({name:r.name, sci:r.sci, family:r.family, loc:r.loc, notes:r.notes, date:r.date}));
+      trees = SEED.concat(userEntries);
+      renderStats(); renderFamilyFilter(); renderGrid();
+    })
+    .catch(err=>console.error('Could not load from Sheet, check SHEET_URL:', err));
+}
+loadEntries();
+
+const grid = document.getElementById('grid');
+const stats = document.getElementById('stats');
+const search = document.getElementById('search');
+const filterFamily = document.getElementById('filterFamily');
+const listView = document.getElementById('listView');
+const detailView = document.getElementById('detailView');
+
+function initial(str){ return str.trim().charAt(0).toUpperCase(); }
+
+function renderStats(){
+  const species = new Set(trees.map(t=>t.sci)).size;
+  stats.innerHTML = `
+    <div class="stat"><b>${trees.length}</b><span>Trees documented</span></div>
+    <div class="stat"><b>${species}</b><span>Species recorded</span></div>`;
+}
+
+function renderFamilyFilter(){
+  const families = ['All'].concat([...new Set(trees.map(t=>t.family))].sort());
+  filterFamily.innerHTML = families.map(f=>`<option value="${f}">${f}</option>`).join('');
+}
+
+function renderGrid(){
+  const q = search.value.trim().toLowerCase();
+  const fam = filterFamily.value;
+  const filtered = trees.filter(t=>{
+    const matchesQ = !q || [t.name,t.sci,t.loc].some(x=>x.toLowerCase().includes(q));
+    const matchesF = fam==='All' || fam===undefined || t.family===fam;
+    return matchesQ && matchesF;
+  });
+  if(filtered.length===0){
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">No trees match that search. Try a different name or location, or document a new one.</div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map((t,i)=>`
+    <div class="card" data-idx="${trees.indexOf(t)}">
+      <div class="tag">${initial(t.name)}</div>
+      <h3>${t.name}</h3>
+      <div class="sci">${t.sci}</div>
+      <div class="meta">${t.loc}</div>
+    </div>`).join('');
+  [...grid.querySelectorAll('.card')].forEach(card=>{
+    card.addEventListener('click',()=>showDetail(parseInt(card.dataset.idx)));
+  });
+}
+
+function showDetail(idx){
+  const t = trees[idx];
+  listView.classList.add('hidden');
+  detailView.classList.remove('hidden');
+  detailView.innerHTML = `
+    <button class="btn-ghost" id="backBtn">← Back to register</button>
+    <div class="detail" style="margin-top:16px">
+      <div class="detail-head">
+        <div>
+          <h2>${t.name}</h2>
+          <div class="sci">${t.sci}</div>
+        </div>
+        <div class="tag" style="margin:0">${initial(t.name)}</div>
+      </div>
+      <dl>
+        <dt>Family</dt><dd>${t.family}</dd>
+        <dt>Location</dt><dd>${t.loc}</dd>
+        <dt>Documented</dt><dd>${t.date||'—'}</dd>
+      </dl>
+      <div class="notes">${t.notes||'No further observations recorded yet.'}</div>
+    </div>`;
+  document.getElementById('backBtn').addEventListener('click',()=>{
+    detailView.classList.add('hidden');
+    listView.classList.remove('hidden');
+  });
+}
+
+search.addEventListener('input',renderGrid);
+filterFamily.addEventListener('change',renderGrid);
+
+const modalBg = document.getElementById('modalBg');
+document.getElementById('addBtn').addEventListener('click',()=>modalBg.classList.remove('hidden'));
+document.getElementById('cancelBtn').addEventListener('click',()=>modalBg.classList.add('hidden'));
+document.getElementById('saveBtn').addEventListener('click',()=>{
+  const name = document.getElementById('f-name').value.trim();
+  const sci = document.getElementById('f-sci').value.trim();
+  const family = document.getElementById('f-family').value.trim();
+  const loc = document.getElementById('f-loc').value.trim();
+  const notes = document.getElementById('f-notes').value.trim();
+  if(!name || !loc){ alert('Add at least a common name and a location.'); return; }
+  const entry = {name, sci: sci||'—', family: family||'Unclassified', loc, notes, date: new Date().toISOString().slice(0,10)};
+  const params = new URLSearchParams({action:'add', name, sci: entry.sci, family: entry.family, loc, notes});
+  fetch(SHEET_URL + '?' + params.toString())
+    .then(()=>loadEntries())
+    .catch(err=>alert('Could not save: '+err.message));
+  modalBg.classList.add('hidden');
+  ['f-name','f-sci','f-family','f-loc','f-notes'].forEach(id=>document.getElementById(id).value='');
+});
+
+renderStats(); renderFamilyFilter(); renderGrid();
+</script>
+</body>
+</html>
